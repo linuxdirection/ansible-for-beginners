@@ -1,0 +1,19 @@
+---
+- hosts: webservers
+  become: true
+
+  tasks:
+    - name: "Install apache webserver on ubuntu"
+      apt:
+        name: apache2
+        state: latest
+    - name: "Update index.html content"
+      copy:
+        content: "This site is managed by Ansible. Updated on {{ ansible_date_time.iso8601 }}"
+        dest: "/var/www/index.html"
+      notify: restart apache
+  handlers:
+    - name: restart apache
+      service:
+        name: apache2
+        state: restarted
