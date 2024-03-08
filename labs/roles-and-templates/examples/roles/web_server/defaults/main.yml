@@ -1,0 +1,9 @@
+---
+webserver_package_name: nginx
+webserver_service_name: nginx
+update_apt_cache: true
+
+# /etc/nginx/nginx.conf variables
+nginx_worker_connections: 2048
+nginx_access_log_path: "/var/log/nginx/web1_access.log"
+nginx_error_log_path: "/var/log/nginx/web1_error.log"

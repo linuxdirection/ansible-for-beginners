@@ -1,0 +1,14 @@
+---
+- name: Conditionals example
+  hosts: webservers
+  tasks:
+    - name: Check if git is installed
+      command: git --version
+      register: git_installed
+      ignore_errors: True
+
+    - name: Install git
+      apt:
+        name: git
+        state: present
+      when: git_installed is failed

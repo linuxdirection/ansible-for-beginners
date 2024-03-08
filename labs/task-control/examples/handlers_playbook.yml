@@ -1,0 +1,15 @@
+---
+- name: Handlers Playbook Example
+  hosts: webservers
+  become: true
+  tasks:
+    - name: Update Nginx configuration
+      copy:
+        src: ./templates/nginx.conf
+        dest: /etc/nginx/nginx.conf
+      notify: restart nginx
+  handlers:
+    - name: restart nginx
+      service:
+        name: nginx
+        state: restarted

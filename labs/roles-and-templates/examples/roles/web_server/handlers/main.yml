@@ -1,0 +1,5 @@
+---
+- name: restart webserver service
+  service:
+    name: "{{ webserver_service_name }}"
+    state: restarted

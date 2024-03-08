@@ -1,0 +1,11 @@
+---
+- name: Update apt repo and install {{ webserver_package_name }}
+  apt:
+    name: "{{ webserver_package_name }}"
+    state: present
+    update_cache: "{{ update_apt_cache }}"
+- name: Configure Nginx Main Configuration file nginx.conf
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+  notify: restart webserver service
