@@ -1,0 +1,60 @@
+const express = require('express');
+const mysql = require('mysql');
+const bodyParser = require('body-parser');
+const cors = require('cors'); // Add this line to require CORS
+
+const app = express();
+const port = 8080;
+
+app.use(cors()); // Use CORS with default settings: allow all origins
+app.use(bodyParser.json());
+
+// MySQL database connection
+const db = mysql.createConnection({
+    host: '{{ database_host_ip }}', // Dynamically replaced by Ansible
+    user: '{{ mysql_user }}', // Dynamically replaced by Ansible
+    password: '{{ mysql_user_password }}', // Dynamically replaced by Ansible
+    database: '{{ mysql_database }}' // Dynamically replaced by Ansible
+});
+
+// Connect to the database
+db.connect((err) => {
+    if (err) {
+        console.error('Error connecting to the database: ', err);
+        return;
+    }
+    console.log('Connected to the database');
+});
+
+// Route to get all posts
+app.get('/posts', (req, res) => {
+    db.query('SELECT * FROM posts', (err, rows) => {
+        if (err) {
+            console.error('Error fetching posts: ', err);
+            res.status(500).send('Error fetching posts');
+            return;
+        }
+        res.json(rows);
+    });
+});
+
+// Route to create a new post
+app.post('/posts', (req, res) => {
+    const { title, content } = req.body;
+    if (!title || !content) {
+        res.status(400).send('Post title and content are required');
+        return;
+    }
+    const query = 'INSERT INTO posts (title, content) VALUES (?, ?)';
+    db.query(query, [title, content], (err, result) => {
+        if (err) {
+            console.error('Error creating new post: ', err);
+            res.status(500).send('Error creating new post');
+            return;
+        }
+        res.status(201).send(`Post created with ID: ${result.insertId}`);
+    });
+});
+
+// Start the server
+app.listen(port, () => console.log(`Back-end app listening at http://localhost:${port}`));

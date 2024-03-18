@@ -1,0 +1,39 @@
+- name: Install Nginx
+  apt:
+    name: nginx
+    state: present
+    update_cache: true
+- name: Remove default Nginx configuration
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+- name: Create /var/www/html/frontend directory
+  file:
+    path: /var/www/html/frontend
+    state: directory
+    mode: '0755'
+    owner: www-data
+    group: www-data
+- name: Copy front-end index file
+  copy:
+    src: templates/frontend/index.html
+    dest: /var/www/html/frontend/index.html
+    owner: www-data
+    group: www-data
+- name: Template the script.js file with backend URL
+  template:
+    src: templates/frontend/script.js.j2
+    dest: /var/www/html/frontend/script.js
+- name: Template Nginx configuration for the front-end
+  template:
+    src: frontend-nginx.conf.j2
+    dest: /etc/nginx/sites-available/frontend.conf
+- name: Enable Nginx configuration
+  file:
+    src: /etc/nginx/sites-available/frontend.conf
+    dest: /etc/nginx/sites-enabled/frontend.conf
+    state: link
+- name: restart nginx
+  service:
+    name: nginx
+    state: restarted

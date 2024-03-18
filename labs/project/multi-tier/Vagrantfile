@@ -1,0 +1,41 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+VAGRANT_PUBLIC_KEY = <<-SSHKEY
+replace_me_with_ansible_controller_public_key 
+SSHKEY
+
+Vagrant.configure("2") do |config|
+    # Provision SSH key for all VMs
+    config.vm.provision "shell", inline: <<-SHELL
+      echo "#{VAGRANT_PUBLIC_KEY}" >> /home/vagrant/.ssh/authorized_keys
+    SHELL
+
+    # VM configuration for all VMs
+    config.vm.provider "virtualbox" do |vb|
+      vb.memory = "1024"
+      vb.cpus = 2
+    end
+
+    # Define the frontend VM
+    config.vm.define "frontend" do |frontend|
+      frontend.vm.box = "generic/ubuntu2204"
+      frontend.vm.network "private_network", ip: "192.168.56.120"
+      frontend.vm.hostname = "frontend"
+      frontend.vm.network "forwarded_port", guest: 80, host: 8090
+    end
+  
+    # Define the backend VM
+    config.vm.define "backend" do |backend|
+      backend.vm.box = "generic/ubuntu2204"
+      backend.vm.network "private_network", ip: "192.168.56.122"
+      backend.vm.hostname = "backend"
+    end
+  
+    # Define the database VM
+    config.vm.define "database" do |database|
+      database.vm.box = "generic/ubuntu2204"
+      database.vm.network "private_network", ip: "192.168.56.124"
+      database.vm.hostname = "database"
+    end
+end

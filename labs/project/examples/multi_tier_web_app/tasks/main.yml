@@ -1,0 +1,10 @@
+---
+- name: Import MySQL Installation Tasks
+  import_tasks: install_mysql.yml
+  when: "'database' in group_names"
+- name: Deploy Backend App
+  import_tasks: deploy_backend.yml
+  when: "'backend' in group_names"
+- name: Deploy Frontend App
+  import_tasks: deploy_frontend.yml
+  when: "'frontend' in group_names" 
