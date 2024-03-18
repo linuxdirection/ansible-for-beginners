@@ -1,0 +1,14 @@
+---
+# General Variables
+ansible_user: vagrant
+
+# Database Variables
+import_schema: true
+database_host_ip: 192.168.56.124
+mysql_root_password: ""
+mysql_database: ""
+mysql_user: ""
+mysql_user_password: ""
+
+# Backend
+backend_url: "http://192.168.56.122:8080"

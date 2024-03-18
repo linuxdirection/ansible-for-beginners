@@ -1,0 +1,41 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+VAGRANT_PUBLIC_KEY = <<-SSHKEY
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDN4Zyw/5uGKflaOnyaZFZwBfTbgu8HTWZ2JvLqwm/o1VDiud3X8K/fY34DCJD0w/URFZBbkR29ow4V8aQJnxYb4lcYIZfnrwpnIaeswKKK0zmOVG7g2Nn9c9eZFPFW8FcnxZHGuFtYfNM4MebboAmpkIYkxlV/Jm3QSRcd+62Q8c7NCd3aX1MOC0TKjqKGD8sDuc2jyuzM9204ThkTDM+DH6v5IHHL2p3gXHoUGlMH/nPI6xFybr3EGSh/cWAJL+9qrheAzVOus+sB0li41stO3nfKTLDJo8Z9v3rhNUFEGmS1Ew61TbsMFBacnLP6rtWssVNqoQiYnt7Cy7UMZ5wBKv62uu8/YGn2m7DXmyapyIvBdOxMSc8/AbwOTo1ivjGNyfeLwQlXsKegD+Iga2NbYoidXUaQ0bvyLGOzu4haIjA+onhJU8AITNXPd0okarF4ciasRNTrMvIh9F42Uq3yZzox4N1scQ6JvOkda2or7l4mAlTBeHPpvr8U6quHSP8= vagrant@ansible
+SSHKEY
+
+Vagrant.configure("2") do |config|
+    # Provision SSH key for all VMs
+    config.vm.provision "shell", inline: <<-SHELL
+      echo "#{VAGRANT_PUBLIC_KEY}" >> /home/vagrant/.ssh/authorized_keys
+    SHELL
+
+    # VM configuration for all VMs
+    config.vm.provider "virtualbox" do |vb|
+      vb.memory = "1024"
+      vb.cpus = 2
+    end
+
+    # Define the frontend VM
+    config.vm.define "frontend" do |frontend|
+      frontend.vm.box = "generic/ubuntu2204"
+      frontend.vm.network "private_network", ip: "192.168.56.120"
+      frontend.vm.hostname = "frontend"
+      frontend.vm.network "forwarded_port", guest: 80, host: 8090
+    end
+  
+    # Define the backend VM
+    config.vm.define "backend" do |backend|
+      backend.vm.box = "generic/ubuntu2204"
+      backend.vm.network "private_network", ip: "192.168.56.122"
+      backend.vm.hostname = "backend"
+    end
+  
+    # Define the database VM
+    config.vm.define "database" do |database|
+      database.vm.box = "generic/ubuntu2204"
+      database.vm.network "private_network", ip: "192.168.56.124"
+      database.vm.hostname = "database"
+    end
+end

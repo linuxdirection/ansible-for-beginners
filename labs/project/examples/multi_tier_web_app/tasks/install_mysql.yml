@@ -1,0 +1,93 @@
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install MySQL Server
+  apt:
+    name: mysql-server
+    state: present
+
+- name: Ensure pip is installed
+  apt:
+    name: python3-pip
+    state: present
+
+- name: Ensure PyMySQL is installed
+  pip:
+    name: pymysql
+    state: present
+
+- name: Install expect
+  apt:
+    name: expect
+    state: present
+    update_cache: true
+
+- name: Change MySQL root authentication method to password
+  command:
+    cmd: >
+      mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '{{ mysql_root_password }}'; FLUSH PRIVILEGES;"
+  no_log: true
+  ignore_errors: true
+
+- name: Upload secure_mysql.sh script to the target
+  copy:
+    src: ./files/secure_mysql.sh
+    dest: /tmp/secure_mysql.sh
+    mode: '0700'
+
+- name: Run the secure_mysql.sh script
+  shell: "NEW_ROOT_PASSWORD='{{ mysql_root_password }}' /tmp/secure_mysql.sh"
+  args:
+    executable: /usr/bin/expect
+
+- name: Copy mysqld.cnf template to target
+  template:
+    src: templates/mysqld.cnf.j2
+    dest: /etc/mysql/mysql.conf.d/mysqld.cnf
+    owner: root
+    group: root
+    mode: '0644'
+- name: restart mysql
+  service:
+    name: mysql
+    state: restarted
+- name: Create MySQL database
+  mysql_db:
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    name: "{{ mysql_database }}"
+    state: present
+
+- name: Create MySQL user for remote access
+  mysql_user:
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    name: "{{ mysql_user }}"
+    password: "{{ mysql_user_password }}"
+    host: '192.168.56.%'
+    priv: "{{ mysql_database }}.*:ALL"
+    state: present
+- name: Create MySQL user for localhost access
+  mysql_user:
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    name: "{{ mysql_user }}"
+    password: "{{ mysql_user_password }}"
+    host: 'localhost'
+    priv: "{{ mysql_database }}.*:ALL"
+    state: present
+- name: Copy SQL schema and data file to target host
+  copy:
+    src: ./files/init_db.sql
+    dest: /tmp/init_db.sql
+
+- name: Import schema and initial data into MySQL database
+  mysql_db:
+    login_user: "{{ mysql_user }}"
+    login_password: "{{ mysql_user_password }}"
+    name: "{{ mysql_database }}"
+    state: import
+    target: /tmp/init_db.sql
+  when: import_schema

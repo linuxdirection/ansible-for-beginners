@@ -1,0 +1,46 @@
+- name: Install Node.js and npm
+  apt:
+    name: ['nodejs', 'npm']
+    state: present
+- name: Ensure application directory exists
+  file:
+    path: /var/www/backend
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0755'
+- name: Install PM2 globally using npm
+  npm:
+    name: pm2
+    global: yes
+    state: present
+- name: Template application file from Jinja2 template
+  template:
+    src: templates/app.js.j2
+    dest: /var/www/backend/app.js
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0644'
+- name: Install npm dependencies
+  shell: npm install express mysql body-parser cors
+  args:
+    chdir: /var/www/backend/
+- name: Start or restart the Node.js application using PM2
+  shell: pm2 restart app || pm2 start app.js --name app
+  args:
+      chdir: /var/www/backend/
+- name: Wait for a few seconds to ensure the app is started
+  pause:
+    seconds: 10
+- name: Check the /posts endpoint
+  uri:
+    url: "http://localhost:8080/posts"
+    method: GET
+    return_content: yes
+  register: result
+  failed_when: result.status != 200
+  changed_when: false
+- name: Print the content of /posts
+  debug:
+    msg: "{{ result.content }}"
+  when: result.status == 200
