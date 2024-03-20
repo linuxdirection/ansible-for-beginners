@@ -1,0 +1,7 @@
+- hosts: localhost
+  tasks:
+    - name: Incorrect use of a module
+      file:
+        path: "/tmp/testfile"
+        state: touch
+        mode: "0644"

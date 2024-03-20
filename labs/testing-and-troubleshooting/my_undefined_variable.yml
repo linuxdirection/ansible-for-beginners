@@ -1,0 +1,5 @@
+- hosts: localhost
+  tasks:
+    - name: Attempt to display an undefined variable
+      debug:
+        var: my_undefined_variable

@@ -1,0 +1,10 @@
+- hosts: localhost
+  tasks:
+    - name: Handle errors gracefully
+      block:
+        - name: This task might fail
+          command: /bin/false
+      rescue:
+        - name: This task runs if the previous task fails
+          debug:
+            msg: "An error occured"

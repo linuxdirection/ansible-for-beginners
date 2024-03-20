@@ -1,0 +1,9 @@
+- name: Terminate EC2 instance
+  hosts: localhost
+  tasks:
+    - name: Terminate instance
+      ec2:
+        state: absent
+        instance_ids:
+          - i-1234567890abcdef0  # Example instance ID; replace with your actual instance ID
+        region: us-east-1  # Make sure to specify the correct region
