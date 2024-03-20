@@ -1,0 +1,32 @@
+- name: Fetch a list of posts
+  hosts: localhost
+  tasks:
+    - name: GET posts
+      uri:
+        url: "https://jsonplaceholder.typicode.com/posts"
+        method: GET
+        return_content: yes
+      register: response
+
+    - name: Print posts
+      debug:
+        var: response.json
+---
+- name: Create a new post
+  hosts: localhost
+  tasks:
+    - name: Post a new Post
+      uri:
+        url: "https://jsonplaceholder.typicode.com/posts"
+        method: POST
+        body_format: json
+        body: "{ \"title\": \"My Ansible Post\", \"body\": \"This is a test post from Ansible.\", \"userId\": 1 }"
+        headers:
+          Content-Type: "application/json"
+        status_code: [200, 201]
+        return_content: true
+      register: response
+
+    - name: Print new post details
+      debug:
+        var: response.json

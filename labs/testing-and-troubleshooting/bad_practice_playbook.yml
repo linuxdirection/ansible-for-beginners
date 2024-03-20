@@ -1,0 +1,23 @@
+---
+- hosts: all
+  tasks:
+  - name: install apache
+    yum:
+      name: httpd
+      state: present
+  - name: ensure apache is running
+    service:
+      name: httpd
+      state: running
+  - name: Create index.html
+    copy:
+      content: "Hello, World\n"
+      dest: /var/www/html/index.html
+      mode: '0644'
+    become: true
+  - name: Securely copy version.txt to the web directory
+    copy: src=/src/version.txt dest=/var/www/html/version.txt mode=777
+  - name: restart apache
+    service:
+      name: httpd
+      state: restarted
